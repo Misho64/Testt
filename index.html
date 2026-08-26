@@ -3,17 +3,18 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>مولّد QR بالصور الفنية</title>
+  <title>مولّد QR Code الإحترافي الفني</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
   <style>
     :root {
-      --bg: #0f172a;
-      --card: #1e293b;
-      --primary: #3b82f6;
-      --primary-hover: #2563eb;
+      --bg: #0b0f19;
+      --card: rgba(23, 32, 54, 0.85);
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
       --text: #f8fafc;
       --text-muted: #94a3b8;
-      --border: #334155;
+      --border: rgba(255, 255, 255, 0.1);
+      --accent: #38bdf8;
     }
 
     * {
@@ -24,30 +25,32 @@
     }
 
     body {
-      background: var(--bg);
+      background: radial-gradient(circle at top right, #1e1b4b, #0b0f19 70%);
       color: var(--text);
       display: flex;
       justify-content: center;
       align-items: center;
       min-height: 100vh;
-      padding: 20px;
+      padding: 24px 16px;
     }
 
     .container {
       background: var(--card);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
       border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 24px;
+      border-radius: 20px;
+      padding: 28px;
       width: 100%;
-      max-width: 480px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+      max-width: 520px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
     }
 
     h1 {
-      font-size: 1.35rem;
+      font-size: 1.4rem;
       text-align: center;
       margin-bottom: 20px;
-      font-weight: 700;
+      color: #fff;
     }
 
     .form-group {
@@ -56,58 +59,97 @@
 
     label {
       display: block;
-      font-size: 0.85rem;
+      font-size: 0.82rem;
       margin-bottom: 6px;
       color: var(--text-muted);
+      font-weight: 500;
     }
 
-    input[type="text"], input[type="file"] {
+    input[type="text"], input[type="file"], select {
       width: 100%;
       padding: 10px 12px;
       border-radius: 8px;
       border: 1px solid var(--border);
-      background: #0f172a;
+      background: rgba(15, 23, 42, 0.8);
       color: white;
       outline: none;
-      font-size: 0.9rem;
-    }
-
-    input[type="text"]:focus {
-      border-color: var(--primary);
+      font-size: 0.88rem;
     }
 
     input[type="range"] {
       width: 100%;
+      accent-color: var(--accent);
+      cursor: pointer;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .option-card {
+      background: rgba(15, 23, 42, 0.5);
+      border: 1px solid var(--border);
+      padding: 12px;
+      border-radius: 10px;
+      margin-bottom: 12px;
+    }
+
+    .checkbox-label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      font-size: 0.88rem;
+      color: var(--text);
+      user-select: none;
+    }
+
+    .checkbox-label input[type="checkbox"] {
+      width: 17px;
+      height: 17px;
       accent-color: var(--primary);
       cursor: pointer;
     }
 
-    .controls-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-      margin-bottom: 14px;
+    .color-pickers {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      margin-top: 8px;
     }
 
-    button {
+    .color-pickers input[type="color"] {
+      border: none;
+      width: 38px;
+      height: 38px;
+      border-radius: 6px;
+      background: transparent;
+      cursor: pointer;
+    }
+
+    button.btn-main {
       width: 100%;
-      padding: 12px;
+      padding: 13px;
       background: var(--primary);
       border: none;
-      border-radius: 8px;
+      border-radius: 10px;
       color: white;
-      font-weight: 600;
-      cursor: pointer;
-      transition: background 0.2s ease;
+      font-weight: 700;
       font-size: 0.95rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      margin-top: 8px;
     }
 
-    button:hover {
+    button.btn-main:hover {
       background: var(--primary-hover);
     }
 
     .preview-box {
-      margin-top: 20px;
+      margin-top: 22px;
       text-align: center;
       display: flex;
       flex-direction: column;
@@ -117,49 +159,156 @@
     canvas {
       max-width: 100%;
       height: auto;
-      border-radius: 12px;
+      border-radius: 14px;
       background: white;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
     }
 
     .download-btn {
       background: #10b981;
       margin-top: 14px;
       display: none;
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
     }
 
-    .download-btn:hover {
-      background: #059669;
+    /* نافذة إدخال الرمز والشراء */
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.75);
+      backdrop-filter: blur(8px);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      z-index: 1000;
     }
+
+    .modal-content {
+      background: #1e293b;
+      border: 1px solid var(--border);
+      padding: 24px;
+      border-radius: 16px;
+      max-width: 380px;
+      width: 100%;
+      text-align: center;
+    }
+
+    .modal-content h3 {
+      font-size: 1.15rem;
+      margin-bottom: 10px;
+    }
+
+    .modal-content p {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-bottom: 16px;
+    }
+
+    .modal-input {
+      width: 100%;
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid #475569;
+      background: #0f172a;
+      color: white;
+      text-align: center;
+      font-size: 1.1rem;
+      letter-spacing: 2px;
+      margin-bottom: 12px;
+    }
+
+    .btn-group-modal {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .btn-confirm { background: var(--primary); color: white; border: none; padding: 10px; border-radius: 8px; font-weight: bold; cursor: pointer; }
+    .btn-wa { background: #25d366; color: white; text-decoration: none; padding: 10px; border-radius: 8px; font-weight: bold; font-size: 0.88rem; display: flex; align-items: center; justify-content: center; gap: 6px; }
+    .btn-close { background: transparent; color: var(--text-muted); border: 1px solid #475569; padding: 8px; border-radius: 8px; cursor: pointer; font-size: 0.8rem; }
   </style>
 </head>
 <body>
 
 <div class="container">
-  <h1>مولّد رمز QR بالصور</h1>
+  <h1>مولّد رمز QR المخصص</h1>
 
   <div class="form-group">
     <label>الرابط أو النص:</label>
-    <input type="text" id="qrText" value="https://google.com" placeholder="أدخل الرابط أو النص">
+    <input type="text" id="qrText" value="https://6m4.me" placeholder="أدخل الرابط">
   </div>
 
   <div class="form-group">
-    <label>اختر الصورة الشخصية:</label>
+    <label>اختر الصورة الشخصية / الخلفية:</label>
     <input type="file" id="imageInput" accept="image/*">
   </div>
 
-  <div class="controls-grid">
+  <div class="grid-2">
     <div class="form-group">
-      <label>تباين الصورة (Contrast):</label>
-      <input type="range" id="contrastRange" min="1" max="2.5" step="0.1" value="1.4">
+      <label>شكل النقاط (Modules):</label>
+      <select id="dotShape">
+        <option value="circle">دوائر (Dots)</option>
+        <option value="square">مربعات كلاسيكية</option>
+        <option value="rounded">مربعات ناعمة</option>
+        <option value="diamond">مضلع (Diamond)</option>
+      </select>
     </div>
     <div class="form-group">
-      <label>حجم نقاط الـ QR:</label>
+      <label>شكل زوايا التوجيه:</label>
+      <select id="finderShape">
+        <option value="classic">مربع حاد</option>
+        <option value="rounded">زوايا مستديرة</option>
+        <option value="circle">عيون دائرية</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <div class="form-group">
+      <label>تباين الصورة:</label>
+      <input type="range" id="contrastRange" min="1" max="2.4" step="0.1" value="1.3">
+    </div>
+    <div class="form-group">
+      <label>حجم النقاط:</label>
       <input type="range" id="dotSizeRange" min="0.25" max="0.45" step="0.02" value="0.34">
     </div>
   </div>
 
-  <button onclick="generateCustomQR()">إنشاء الرمز</button>
+  <div class="option-card">
+    <label class="checkbox-label">
+      <input type="checkbox" id="enableGradient">
+      تفعيل التدرجات اللونية (Gradient)
+    </label>
+    <div class="color-pickers" id="gradientControls" style="display:none;">
+      <label style="margin:0; font-size:0.75rem;">اللون 1:</label>
+      <input type="color" id="gradColor1" value="#3b82f6">
+      <label style="margin:0; font-size:0.75rem;">اللون 2:</label>
+      <input type="color" id="gradColor2" value="#9333ea">
+    </div>
+  </div>
+
+  <div class="option-card">
+    <label class="checkbox-label">
+      <input type="checkbox" id="enableGlass">
+      تأثير زجاجي ضبابي (Glassmorphism)
+    </label>
+  </div>
+
+  <div class="option-card">
+    <label class="checkbox-label">
+      <input type="checkbox" id="showLogoBadge" checked>
+      إظهار شعار المنتصف (6m4.me)
+    </label>
+  </div>
+
+  <button class="btn-main" onclick="generateCustomQR()">إنشاء الرمز</button>
 
   <div class="preview-box">
     <canvas id="qrCanvas" width="600" height="600" style="display:none;"></canvas>
@@ -167,8 +316,25 @@
   </div>
 </div>
 
+<!-- نافذة إدخال رمز الحذف أو الشراء -->
+<div class="modal-overlay" id="unlockModal">
+  <div class="modal-content">
+    <h3>إزالة شعار المنتصف</h3>
+    <p>لإخفاء شعار 6m4.me، يرجى إدخال رمز التفعيل الخاص بك:</p>
+    <input type="password" id="passcodeInput" class="modal-input" placeholder="اكتب الرمز">
+    <div class="btn-group-modal">
+      <button class="btn-confirm" onclick="verifyPasscode()">تأكيد التفعيل</button>
+      <a href="https://wa.me/201551179695?text=مرحبا،%20أريد%20شراء%20كود%20إزالة%20شعار%20الـ%20QR" target="_blank" class="btn-wa">
+        شراء الرمز عبر واتساب (01551179695)
+      </a>
+      <button class="btn-close" onclick="closeModal()">إلغاء</button>
+    </div>
+  </div>
+</div>
+
 <script>
   let cachedImg = null;
+  let isUnlocked = false; // التحقق من فك قفل الشعار
 
   document.getElementById('imageInput').addEventListener('change', function(e) {
     if (e.target.files && e.target.files[0]) {
@@ -182,34 +348,126 @@
     }
   });
 
-  document.getElementById('contrastRange').addEventListener('input', () => {
-    if (cachedImg) generateCustomQR();
-  });
-  document.getElementById('dotSizeRange').addEventListener('input', () => {
+  // إظهار وإخفاء أدوات التدرج اللوني
+  document.getElementById('enableGradient').addEventListener('change', function() {
+    document.getElementById('gradientControls').style.display = this.checked ? 'flex' : 'none';
     if (cachedImg) generateCustomQR();
   });
 
-  // حصر زوايا التوجيه بدقة على نطاق 7x7 فقط بدون أي حواف بيضاء خارجية
-  function isInsideFinderSquare(r, c, count) {
+  // مراقبة الشعار وطلب الرمز عند محاولة الإلغاء
+  document.getElementById('showLogoBadge').addEventListener('click', function(e) {
+    if (!this.checked && !isUnlocked) {
+      e.preventDefault();
+      document.getElementById('unlockModal').style.display = 'flex';
+      document.getElementById('passcodeInput').value = '';
+    } else {
+      if (cachedImg) generateCustomQR();
+    }
+  });
+
+  function verifyPasscode() {
+    const code = document.getElementById('passcodeInput').value.trim();
+    if (code === '64') {
+      isUnlocked = true;
+      document.getElementById('showLogoBadge').checked = false;
+      closeModal();
+      if (cachedImg) generateCustomQR();
+    } else {
+      alert("الرمز غير صحيح!");
+    }
+  }
+
+  function closeModal() {
+    document.getElementById('unlockModal').style.display = 'none';
+  }
+
+  // مستمعات التحديث الفوري
+  ['contrastRange', 'dotSizeRange', 'dotShape', 'finderShape', 'gradColor1', 'gradColor2', 'enableGlass'].forEach(id => {
+    document.getElementById(id).addEventListener('input', () => { if (cachedImg) generateCustomQR(); });
+  });
+
+  function isInsideFinder(r, c, count) {
     if (r < 7 && c < 7) return true;
     if (r < 7 && c >= count - 7) return true;
     if (r >= count - 7 && c < 7) return true;
     return false;
   }
 
-  // رسم مربع التوجيه (7x7) مباشرة فوق الصورة بدون مسح المحيط
-  function drawCompactFinder(ctx, startX, startY, cellSize) {
-    // 1. الإطار الخارجي الأسود (7x7)
-    ctx.fillStyle = '#000000';
-    ctx.fillRect(startX, startY, cellSize * 7, cellSize * 7);
+  function isInsideCenterLogo(r, c, count) {
+    if (!document.getElementById('showLogoBadge').checked) return false;
+    const mid = Math.floor(count / 2);
+    return Math.abs(r - mid) <= 2 && Math.abs(c - mid) <= 4;
+  }
 
-    // 2. المربع الداخلي الأبيض (5x5)
-    ctx.fillStyle = '#FFFFFF';
-    ctx.fillRect(startX + cellSize, startY + cellSize, cellSize * 5, cellSize * 5);
+  // رسم النقاط بالأشكال المختلفة
+  function drawModule(ctx, shape, x, y, size) {
+    const half = size / 2;
+    ctx.beginPath();
+    if (shape === 'circle') {
+      ctx.arc(x, y, half, 0, Math.PI * 2);
+    } else if (shape === 'square') {
+      ctx.rect(x - half, y - half, size, size);
+    } else if (shape === 'rounded') {
+      ctx.roundRect(x - half, y - half, size, size, half * 0.45);
+    } else if (shape === 'diamond') {
+      ctx.moveTo(x, y - half);
+      ctx.lineTo(x + half, y);
+      ctx.lineTo(x, y + half);
+      ctx.lineTo(x - half, y);
+      ctx.closePath();
+    }
+    ctx.fill();
+  }
 
-    // 3. المربع الأوسط الأسود (3x3)
-    ctx.fillStyle = '#000000';
-    ctx.fillRect(startX + cellSize * 2, startY + cellSize * 2, cellSize * 3, cellSize * 3);
+  // رسم زوايا التوجيه بالأشكال المخصصة
+  function drawCustomFinder(ctx, startX, startY, cellSize, style, fillStyle) {
+    ctx.save();
+    ctx.fillStyle = fillStyle;
+    const size7 = cellSize * 7;
+    const size5 = cellSize * 5;
+    const size3 = cellSize * 3;
+
+    if (style === 'classic') {
+      ctx.fillRect(startX, startY, size7, size7);
+      ctx.fillStyle = '#FFFFFF';
+      ctx.fillRect(startX + cellSize, startY + cellSize, size5, size5);
+      ctx.fillStyle = fillStyle;
+      ctx.fillRect(startX + cellSize * 2, startY + cellSize * 2, size3, size3);
+    } 
+    else if (style === 'rounded') {
+      ctx.beginPath();
+      ctx.roundRect(startX, startY, size7, size7, cellSize * 1.6);
+      ctx.fill();
+
+      ctx.fillStyle = '#FFFFFF';
+      ctx.beginPath();
+      ctx.roundRect(startX + cellSize, startY + cellSize, size5, size5, cellSize * 1.1);
+      ctx.fill();
+
+      ctx.fillStyle = fillStyle;
+      ctx.beginPath();
+      ctx.roundRect(startX + cellSize * 2, startY + cellSize * 2, size3, size3, cellSize * 0.6);
+      ctx.fill();
+    } 
+    else if (style === 'circle') {
+      const cx = startX + size7 / 2;
+      const cy = startY + size7 / 2;
+
+      ctx.beginPath();
+      ctx.arc(cx, cy, size7 / 2, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = '#FFFFFF';
+      ctx.beginPath();
+      ctx.arc(cx, cy, size5 / 2, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = fillStyle;
+      ctx.beginPath();
+      ctx.arc(cx, cy, size3 / 2, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.restore();
   }
 
   function generateCustomQR() {
@@ -217,11 +475,17 @@
     const canvas = document.getElementById('qrCanvas');
     const ctx = canvas.getContext('2d');
     const downloadBtn = document.getElementById('downloadBtn');
+
     const contrast = parseFloat(document.getElementById('contrastRange').value);
     const dotRatio = parseFloat(document.getElementById('dotSizeRange').value);
+    const dotShape = document.getElementById('dotShape').value;
+    const finderShape = document.getElementById('finderShape').value;
+    const isGradient = document.getElementById('enableGradient').checked;
+    const isGlass = document.getElementById('enableGlass').checked;
+    const showLogo = document.getElementById('showLogoBadge').checked;
 
-    if (!text) return alert("يرجى إدخال الرابط أولاً");
-    if (!cachedImg) return alert("يرجى اختيار صورة أولاً");
+    if (!text) return alert("يرجى كتابة الرابط");
+    if (!cachedImg) return alert("يرجى اختيار صورة");
 
     const qr = qrcode(0, 'H');
     qr.addData(text);
@@ -233,7 +497,7 @@
     canvas.height = size;
     const cellSize = size / count;
 
-    // 1. رسم الصورة وتوسيطها بنمط cover
+    // 1. رسم الصورة
     const hRatio = size / cachedImg.width;
     const vRatio = size / cachedImg.height;
     const ratio = Math.max(hRatio, vRatio);
@@ -244,7 +508,7 @@
     ctx.fillRect(0, 0, size, size);
     ctx.drawImage(cachedImg, 0, 0, cachedImg.width, cachedImg.height, centerShiftX, centerShiftY, cachedImg.width * ratio, cachedImg.height * ratio);
 
-    // 2. تحويل ألوان الصورة لتدرج رمادي عالي التباين
+    // 2. تطبيق التباين والتأثير الرمادي
     const imgData = ctx.getImageData(0, 0, size, size);
     const d = imgData.data;
     for (let i = 0; i < d.length; i += 4) {
@@ -257,26 +521,70 @@
     }
     ctx.putImageData(imgData, 0, 0);
 
-    // 3. رسم نقاط البيانات فوق الصورة حتى حدود المربعات تماماً
+    // تأثير Glassmorphism (طبقة غباش ناعمة)
+    if (isGlass) {
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.22)';
+      ctx.fillRect(0, 0, size, size);
+    }
+
+    // إعداد التدرج اللوني إن وُجد
+    let darkColor = '#000000';
+    if (isGradient) {
+      const g = ctx.createLinearGradient(0, 0, size, size);
+      g.addColorStop(0, document.getElementById('gradColor1').value);
+      g.addColorStop(1, document.getElementById('gradColor2').value);
+      darkColor = g;
+    }
+
+    // 3. رسم نقاط الـ QR
     for (let r = 0; r < count; r++) {
       for (let c = 0; c < count; c++) {
-        if (!isInsideFinderSquare(r, c, count)) {
+        if (!isInsideFinder(r, c, count) && !isInsideCenterLogo(r, c, count)) {
           const isDark = qr.isDark(r, c);
-          const centerX = c * cellSize + cellSize / 2;
-          const centerY = r * cellSize + cellSize / 2;
+          const cx = c * cellSize + cellSize / 2;
+          const cy = r * cellSize + cellSize / 2;
 
-          ctx.beginPath();
-          ctx.arc(centerX, centerY, cellSize * dotRatio, 0, Math.PI * 2);
-          ctx.fillStyle = isDark ? 'rgba(0, 0, 0, 0.92)' : 'rgba(255, 255, 255, 0.88)';
-          ctx.fill();
+          ctx.fillStyle = isDark ? darkColor : 'rgba(255, 255, 255, 0.88)';
+          drawModule(ctx, dotShape, cx, cy, cellSize * dotRatio * 2);
         }
       }
     }
 
-    // 4. رسم المربعات الثلاثة بدقة دون أي خلفية بيضاء زائدة
-    drawCompactFinder(ctx, 0, 0, cellSize); // أعلى اليسار
-    drawCompactFinder(ctx, (count - 7) * cellSize, 0, cellSize); // أعلى اليمين
-    drawCompactFinder(ctx, 0, (count - 7) * cellSize, cellSize); // أسفل اليسار
+    // 4. رسم زوايا التوجيه
+    drawCustomFinder(ctx, 0, 0, cellSize, finderShape, darkColor);
+    drawCustomFinder(ctx, (count - 7) * cellSize, 0, cellSize, finderShape, darkColor);
+    drawCustomFinder(ctx, 0, (count - 7) * cellSize, cellSize, finderShape, darkColor);
+
+    // 5. دمج شعار 6m4.me في المنتصف
+    if (showLogo) {
+      const badgeW = cellSize * 9.5;
+      const badgeH = cellSize * 4.2;
+      const bx = (size - badgeW) / 2;
+      const by = (size - badgeH) / 2;
+
+      ctx.save();
+      // خلفية الشعار
+      ctx.shadowColor = 'rgba(0,0,0,0.3)';
+      ctx.shadowBlur = 10;
+      ctx.fillStyle = '#0f172a';
+      ctx.beginPath();
+      ctx.roundRect(bx, by, badgeW, badgeH, 12);
+      ctx.fill();
+
+      // إطار الشعار
+      ctx.strokeStyle = '#38bdf8';
+      ctx.lineWidth = 2.5;
+      ctx.stroke();
+
+      // نص الشعار
+      ctx.shadowBlur = 0;
+      ctx.fillStyle = '#ffffff';
+      ctx.font = `bold ${Math.floor(cellSize * 2.1)}px system-ui, sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('6m4.me', size / 2, size / 2 + 1);
+      ctx.restore();
+    }
 
     canvas.style.display = 'block';
     downloadBtn.style.display = 'block';
@@ -285,7 +593,7 @@
   function downloadQR() {
     const canvas = document.getElementById('qrCanvas');
     const link = document.createElement('a');
-    link.download = 'art-qr.png';
+    link.download = '6m4-art-qr.png';
     link.href = canvas.toDataURL('image/png');
     link.click();
   }
@@ -293,3 +601,4 @@
 
 </body>
 </html>
+ 
