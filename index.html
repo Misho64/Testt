@@ -73,7 +73,7 @@
       color: var(--text-muted);
     }
 
-    input[type="text"], input[type="file"], select {
+    input[type="text"], input[type="file"], input[type="password"], select {
       width: 100%;
       padding: 10px 12px;
       border-radius: 8px;
@@ -82,6 +82,10 @@
       color: white;
       outline: none;
       font-size: 0.88rem;
+    }
+
+    input[type="text"]:focus, select:focus {
+      border-color: var(--primary);
     }
 
     input[type="range"] {
@@ -190,7 +194,7 @@
       cursor: pointer;
     }
 
-    /* نافذة فك القفل أو الشراء */
+    /* نافذة فك القفل */
     .modal-overlay {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
@@ -253,10 +257,20 @@
 <div class="container">
   <h1>مولّد رمز QR المخصص</h1>
 
+  <!-- نوع الإجراء المباشر -->
   <div class="form-group">
-    <label>الرابط أو النص:</label>
-    <input type="text" id="qrText" value="https://6m4.me" placeholder="أدخل الرابط">
+    <label>نوع الإجراء / المحتوى (اختياري):</label>
+    <select id="actionType" onchange="renderActionInputs()">
+      <option value="url">رابط موقع مباشر (URL)</option>
+      <option value="whatsapp">محادثة واتساب مباشرة (WhatsApp)</option>
+      <option value="wifi">اتصال بشبكة واي فاي (Wi-Fi)</option>
+      <option value="vcard">بطاقة جهة اتصال (vCard)</option>
+      <option value="text">نص مخصص / باركود</option>
+    </select>
   </div>
+
+  <!-- حقول الإجراء الديناميكية -->
+  <div id="dynamicActionContainer"></div>
 
   <div class="form-group">
     <label>اختر الصورة الشخصية / الخلفية:</label>
@@ -297,6 +311,14 @@
 
   <div class="section-title">تأثيرات إضافية (اختيارية)</div>
 
+  <!-- خيار التأثير المتحرك -->
+  <div class="optional-box">
+    <label class="checkbox-label">
+      <input type="checkbox" id="enableAnimation">
+      تفعيل الرمز المتحرك (Animated Scan Laser & Glow) — اختياري
+    </label>
+  </div>
+
   <!-- خيار التدرجات اللونية -->
   <div class="optional-box">
     <label class="checkbox-label">
@@ -305,9 +327,9 @@
     </label>
     <div class="sub-controls" id="gradientControls">
       <div class="color-pickers">
-        <label style="margin:0; font-size:0.75rem;">اللون الأول:</label>
+        <label style="margin:0; font-size:0.75rem;">اللون 1:</label>
         <input type="color" id="gradColor1" value="#2563eb">
-        <label style="margin:0; font-size:0.75rem;">اللون الثاني:</label>
+        <label style="margin:0; font-size:0.75rem;">اللون 2:</label>
         <input type="color" id="gradColor2" value="#9333ea">
       </div>
     </div>
@@ -329,7 +351,7 @@
     </label>
   </div>
 
-  <button class="btn-main" onclick="generateCustomQR()">إنشاء الرمز</button>
+  <button class="btn-main" onclick="triggerGenerate()">إنشاء الرمز</button>
 
   <div class="preview-box">
     <canvas id="qrCanvas" width="600" height="600" style="display:none;"></canvas>
@@ -356,13 +378,98 @@
 <script>
   let cachedImg = null;
   let isUnlocked = false;
+  let animationFrameId = null;
+  let animProgress = 0;
 
+  // توليد واجهات الإجراءات المباشرة
+  function renderActionInputs() {
+    const type = document.getElementById('actionType').value;
+    const container = document.getElementById('dynamicActionContainer');
+    let html = '';
+
+    if (type === 'url') {
+      html = `
+        <div class="form-group">
+          <label>رابط الموقع:</label>
+          <input type="text" id="targetUrl" value="https://6m4.me" placeholder="https://example.com">
+        </div>`;
+    } else if (type === 'whatsapp') {
+      html = `
+        <div class="grid-2">
+          <div class="form-group">
+            <label>رقم الهاتف مع كود الدولة:</label>
+            <input type="text" id="waPhone" value="201551179695" placeholder="مثال: 201012345678">
+          </div>
+          <div class="form-group">
+            <label>الرسالة التلقائية:</label>
+            <input type="text" id="waMsg" value="مرحباً، أود التواصل معك" placeholder="اكتب نص الرسالة">
+          </div>
+        </div>`;
+    } else if (type === 'wifi') {
+      html = `
+        <div class="grid-2">
+          <div class="form-group">
+            <label>اسم الشبكة (SSID):</label>
+            <input type="text" id="wifiSsid" placeholder="اسم الواي فاي">
+          </div>
+          <div class="form-group">
+            <label>كلمة المرور:</label>
+            <input type="text" id="wifiPass" placeholder="رمز المرور">
+          </div>
+        </div>`;
+    } else if (type === 'vcard') {
+      html = `
+        <div class="grid-2">
+          <div class="form-group">
+            <label>الاسم بالكامل:</label>
+            <input type="text" id="vName" placeholder="الاسم">
+          </div>
+          <div class="form-group">
+            <label>رقم الهاتف:</label>
+            <input type="text" id="vPhone" placeholder="رقم الهاتف">
+          </div>
+        </div>`;
+    } else if (type === 'text') {
+      html = `
+        <div class="form-group">
+          <label>النص أو الرمز المخصص:</label>
+          <input type="text" id="plainText" placeholder="اكتب النص هنا">
+        </div>`;
+    }
+    container.innerHTML = html;
+  }
+  renderActionInputs();
+
+  // الحصول على النص المنسق حسب الإجراء المختار
+  function getPayload() {
+    const type = document.getElementById('actionType').value;
+    if (type === 'url') return (document.getElementById('targetUrl').value || 'https://6m4.me').trim();
+    if (type === 'whatsapp') {
+      const phone = (document.getElementById('waPhone').value || '').trim();
+      const msg = encodeURIComponent((document.getElementById('waMsg').value || '').trim());
+      return `https://wa.me/${phone}?text=${msg}`;
+    }
+    if (type === 'wifi') {
+      const ssid = (document.getElementById('wifiSsid').value || '').trim();
+      const pass = (document.getElementById('wifiPass').value || '').trim();
+      return `WIFI:T:WPA;S:${ssid};P:${pass};;`;
+    }
+    if (type === 'vcard') {
+      const name = (document.getElementById('vName').value || '').trim();
+      const phone = (document.getElementById('vPhone').value || '').trim();
+      return `BEGIN:VCARD\nVERSION:3.0\nN:${name}\nTEL:${phone}\nEND:VCARD`;
+    }
+    if (type === 'text') return (document.getElementById('plainText').value || '').trim();
+    return 'https://6m4.me';
+  }
+
+  // مستمع الصورة
   document.getElementById('imageInput').addEventListener('change', function(e) {
     if (e.target.files && e.target.files[0]) {
       const reader = new FileReader();
       reader.onload = function(evt) {
         cachedImg = new Image();
-        cachedImg.onload = generateCustomQR;
+        cachedImg.onload = triggerGenerate;
         cachedImg.src = evt.target.result;
       };
       reader.readAsDataURL(e.target.files[0]);
@@ -371,7 +478,11 @@
 
   document.getElementById('enableGradient').addEventListener('change', function() {
     document.getElementById('gradientControls').style.display = this.checked ? 'block' : 'none';
-    if (cachedImg) generateCustomQR();
+    if (cachedImg) triggerGenerate();
+  });
+
+  document.getElementById('enableAnimation').addEventListener('change', function() {
+    if (cachedImg) triggerGenerate();
   });
 
   document.getElementById('showLogoBadge').addEventListener('click', function(e) {
@@ -380,7 +491,7 @@
       document.getElementById('unlockModal').style.display = 'flex';
       document.getElementById('passcodeInput').value = '';
     } else {
-      if (cachedImg) generateCustomQR();
+      if (cachedImg) triggerGenerate();
     }
   });
 
@@ -390,7 +501,7 @@
       isUnlocked = true;
       document.getElementById('showLogoBadge').checked = false;
       closeModal();
-      if (cachedImg) generateCustomQR();
+      if (cachedImg) triggerGenerate();
     } else {
       alert("الرمز غير صحيح!");
     }
@@ -401,7 +512,7 @@
   }
 
   ['contrastRange', 'dotSizeRange', 'dotShape', 'finderShape', 'gradColor1', 'gradColor2', 'enableGlass'].forEach(id => {
-    document.getElementById(id).addEventListener('input', () => { if (cachedImg) generateCustomQR(); });
+    document.getElementById(id).addEventListener('input', () => { if (cachedImg) triggerGenerate(); });
   });
 
   function isInsideFinder(r, c, count) {
@@ -486,8 +597,24 @@
     ctx.restore();
   }
 
-  function generateCustomQR() {
-    const text = document.getElementById('qrText').value.trim();
+  function triggerGenerate() {
+    if (animationFrameId) cancelAnimationFrame(animationFrameId);
+    const isAnim = document.getElementById('enableAnimation').checked;
+
+    if (isAnim) {
+      function loop() {
+        animProgress = (animProgress + 0.015) % 1;
+        renderCanvasFrame();
+        animationFrameId = requestAnimationFrame(loop);
+      }
+      loop();
+    } else {
+      renderCanvasFrame();
+    }
+  }
+
+  function renderCanvasFrame() {
+    const text = getPayload();
     const canvas = document.getElementById('qrCanvas');
     const ctx = canvas.getContext('2d');
     const downloadBtn = document.getElementById('downloadBtn');
@@ -499,9 +626,9 @@
     const isGradient = document.getElementById('enableGradient').checked;
     const isGlass = document.getElementById('enableGlass').checked;
     const showLogo = document.getElementById('showLogoBadge').checked;
+    const isAnim = document.getElementById('enableAnimation').checked;
 
-    if (!text) return alert("يرجى كتابة الرابط");
-    if (!cachedImg) return alert("يرجى اختيار صورة");
+    if (!text || !cachedImg) return;
 
     const qr = qrcode(0, 'H');
     qr.addData(text);
@@ -524,7 +651,7 @@
     ctx.fillRect(0, 0, size, size);
     ctx.drawImage(cachedImg, 0, 0, cachedImg.width, cachedImg.height, centerShiftX, centerShiftY, cachedImg.width * ratio, cachedImg.height * ratio);
 
-    // 2. معالجة التباين
+    // 2. تطبيق التباين والتدرج الرمادي
     const imgData = ctx.getImageData(0, 0, size, size);
     const d = imgData.data;
     for (let i = 0; i < d.length; i += 4) {
@@ -537,13 +664,13 @@
     }
     ctx.putImageData(imgData, 0, 0);
 
-    // 3. تطبيق التأثير الزجاجي (عند التفعيل فقط)
+    // 3. التأثير الزجاجي
     if (isGlass) {
       ctx.fillStyle = 'rgba(255, 255, 255, 0.28)';
       ctx.fillRect(0, 0, size, size);
     }
 
-    // 4. تطبيق التدرج اللوني (عند التفعيل فقط)
+    // 4. التدرج اللوني
     let darkColor = '#000000';
     if (isGradient) {
       const g = ctx.createLinearGradient(0, 0, size, size);
@@ -552,7 +679,7 @@
       darkColor = g;
     }
 
-    // 5. رسم نقاط البيانات
+    // 5. رسم نقاط الـ QR
     for (let r = 0; r < count; r++) {
       for (let c = 0; c < count; c++) {
         if (!isInsideFinder(r, c, count) && !isInsideCenterLogo(r, c, count)) {
@@ -571,7 +698,7 @@
     drawCustomFinder(ctx, (count - 7) * cellSize, 0, cellSize, finderShape, darkColor);
     drawCustomFinder(ctx, 0, (count - 7) * cellSize, cellSize, finderShape, darkColor);
 
-    // 7. رسم شعار المنتصف
+    // 7. شعار المنتصف
     if (showLogo) {
       const badgeW = cellSize * 9.5;
       const badgeH = cellSize * 4.2;
@@ -599,6 +726,22 @@
       ctx.restore();
     }
 
+    // 8. تأثير الليزر والمسح المتحرك
+    if (isAnim) {
+      const scanY = animProgress * size;
+      const laserGrad = ctx.createLinearGradient(0, scanY - 20, 0, scanY + 20);
+      laserGrad.addColorStop(0, 'rgba(56, 189, 248, 0)');
+      laserGrad.addColorStop(0.5, 'rgba(56, 189, 248, 0.6)');
+      laserGrad.addColorStop(1, 'rgba(56, 189, 248, 0)');
+
+      ctx.fillStyle = laserGrad;
+      ctx.fillRect(0, scanY - 20, size, 40);
+
+      // خط ليزر مركزي فائق التوهج
+      ctx.fillStyle = '#38bdf8';
+      ctx.fillRect(0, scanY - 1, size, 2);
+    }
+
     canvas.style.display = 'block';
     downloadBtn.style.display = 'block';
   }
@@ -606,7 +749,7 @@
   function downloadQR() {
     const canvas = document.getElementById('qrCanvas');
     const link = document.createElement('a');
-    link.download = '6m4-custom-qr.png';
+    link.download = '6m4-qr.png';
     link.href = canvas.toDataURL('image/png');
     link.click();
   }
