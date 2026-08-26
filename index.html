@@ -8,12 +8,12 @@
   <style>
     :root {
       --bg: #0b0f19;
-      --card: rgba(23, 32, 54, 0.85);
+      --card: rgba(23, 32, 54, 0.9);
       --primary: #2563eb;
       --primary-hover: #1d4ed8;
       --text: #f8fafc;
       --text-muted: #94a3b8;
-      --border: rgba(255, 255, 255, 0.1);
+      --border: rgba(255, 255, 255, 0.12);
       --accent: #38bdf8;
     }
 
@@ -25,7 +25,7 @@
     }
 
     body {
-      background: radial-gradient(circle at top right, #1e1b4b, #0b0f19 70%);
+      background: radial-gradient(circle at top right, #1e1b4b, #0b0f19 75%);
       color: var(--text);
       display: flex;
       justify-content: center;
@@ -40,29 +40,37 @@
       -webkit-backdrop-filter: blur(16px);
       border: 1px solid var(--border);
       border-radius: 20px;
-      padding: 28px;
+      padding: 26px;
       width: 100%;
       max-width: 520px;
       box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
     }
 
     h1 {
-      font-size: 1.4rem;
+      font-size: 1.35rem;
       text-align: center;
-      margin-bottom: 20px;
-      color: #fff;
+      margin-bottom: 18px;
+    }
+
+    .section-title {
+      font-size: 0.85rem;
+      color: var(--accent);
+      font-weight: bold;
+      margin: 14px 0 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
     }
 
     .form-group {
-      margin-bottom: 14px;
+      margin-bottom: 12px;
     }
 
     label {
       display: block;
-      font-size: 0.82rem;
+      font-size: 0.8rem;
       margin-bottom: 6px;
       color: var(--text-muted);
-      font-weight: 500;
     }
 
     input[type="text"], input[type="file"], select {
@@ -70,7 +78,7 @@
       padding: 10px 12px;
       border-radius: 8px;
       border: 1px solid var(--border);
-      background: rgba(15, 23, 42, 0.8);
+      background: rgba(15, 23, 42, 0.85);
       color: white;
       outline: none;
       font-size: 0.88rem;
@@ -85,16 +93,15 @@
     .grid-2 {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 12px;
-      margin-bottom: 12px;
+      gap: 10px;
     }
 
-    .option-card {
-      background: rgba(15, 23, 42, 0.5);
+    .optional-box {
+      background: rgba(15, 23, 42, 0.6);
       border: 1px solid var(--border);
+      border-radius: 12px;
       padding: 12px;
-      border-radius: 10px;
-      margin-bottom: 12px;
+      margin-top: 10px;
     }
 
     .checkbox-label {
@@ -102,29 +109,35 @@
       align-items: center;
       gap: 8px;
       cursor: pointer;
-      font-size: 0.88rem;
+      font-size: 0.86rem;
       color: var(--text);
       user-select: none;
     }
 
     .checkbox-label input[type="checkbox"] {
-      width: 17px;
-      height: 17px;
+      width: 16px;
+      height: 16px;
       accent-color: var(--primary);
       cursor: pointer;
     }
 
+    .sub-controls {
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      display: none;
+    }
+
     .color-pickers {
       display: flex;
-      gap: 10px;
+      gap: 12px;
       align-items: center;
-      margin-top: 8px;
     }
 
     .color-pickers input[type="color"] {
       border: none;
-      width: 38px;
-      height: 38px;
+      width: 36px;
+      height: 36px;
       border-radius: 6px;
       background: transparent;
       cursor: pointer;
@@ -132,7 +145,7 @@
 
     button.btn-main {
       width: 100%;
-      padding: 13px;
+      padding: 12px;
       background: var(--primary);
       border: none;
       border-radius: 10px;
@@ -140,8 +153,8 @@
       font-weight: 700;
       font-size: 0.95rem;
       cursor: pointer;
-      transition: all 0.2s;
-      margin-top: 8px;
+      transition: 0.2s;
+      margin-top: 16px;
     }
 
     button.btn-main:hover {
@@ -149,7 +162,7 @@
     }
 
     .preview-box {
-      margin-top: 22px;
+      margin-top: 20px;
       text-align: center;
       display: flex;
       flex-direction: column;
@@ -177,7 +190,7 @@
       cursor: pointer;
     }
 
-    /* نافذة إدخال الرمز والشراء */
+    /* نافذة فك القفل أو الشراء */
     .modal-overlay {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
@@ -202,13 +215,13 @@
 
     .modal-content h3 {
       font-size: 1.15rem;
-      margin-bottom: 10px;
+      margin-bottom: 8px;
     }
 
     .modal-content p {
-      font-size: 0.85rem;
+      font-size: 0.82rem;
       color: var(--text-muted);
-      margin-bottom: 16px;
+      margin-bottom: 14px;
     }
 
     .modal-input {
@@ -231,7 +244,7 @@
     }
 
     .btn-confirm { background: var(--primary); color: white; border: none; padding: 10px; border-radius: 8px; font-weight: bold; cursor: pointer; }
-    .btn-wa { background: #25d366; color: white; text-decoration: none; padding: 10px; border-radius: 8px; font-weight: bold; font-size: 0.88rem; display: flex; align-items: center; justify-content: center; gap: 6px; }
+    .btn-wa { background: #25d366; color: white; text-decoration: none; padding: 10px; border-radius: 8px; font-weight: bold; font-size: 0.85rem; display: flex; align-items: center; justify-content: center; gap: 6px; }
     .btn-close { background: transparent; color: var(--text-muted); border: 1px solid #475569; padding: 8px; border-radius: 8px; cursor: pointer; font-size: 0.8rem; }
   </style>
 </head>
@@ -250,9 +263,10 @@
     <input type="file" id="imageInput" accept="image/*">
   </div>
 
+  <div class="section-title">التخصيص الأساسي</div>
   <div class="grid-2">
     <div class="form-group">
-      <label>شكل النقاط (Modules):</label>
+      <label>شكل النقاط:</label>
       <select id="dotShape">
         <option value="circle">دوائر (Dots)</option>
         <option value="square">مربعات كلاسيكية</option>
@@ -263,7 +277,7 @@
     <div class="form-group">
       <label>شكل زوايا التوجيه:</label>
       <select id="finderShape">
-        <option value="classic">مربع حاد</option>
+        <option value="classic">مربع كلاسيكي</option>
         <option value="rounded">زوايا مستديرة</option>
         <option value="circle">عيون دائرية</option>
       </select>
@@ -281,27 +295,34 @@
     </div>
   </div>
 
-  <div class="option-card">
+  <div class="section-title">تأثيرات إضافية (اختيارية)</div>
+
+  <!-- خيار التدرجات اللونية -->
+  <div class="optional-box">
     <label class="checkbox-label">
       <input type="checkbox" id="enableGradient">
-      تفعيل التدرجات اللونية (Gradient)
+      تفعيل التدرجات اللونية (Gradient) — اختياري
     </label>
-    <div class="color-pickers" id="gradientControls" style="display:none;">
-      <label style="margin:0; font-size:0.75rem;">اللون 1:</label>
-      <input type="color" id="gradColor1" value="#3b82f6">
-      <label style="margin:0; font-size:0.75rem;">اللون 2:</label>
-      <input type="color" id="gradColor2" value="#9333ea">
+    <div class="sub-controls" id="gradientControls">
+      <div class="color-pickers">
+        <label style="margin:0; font-size:0.75rem;">اللون الأول:</label>
+        <input type="color" id="gradColor1" value="#2563eb">
+        <label style="margin:0; font-size:0.75rem;">اللون الثاني:</label>
+        <input type="color" id="gradColor2" value="#9333ea">
+      </div>
     </div>
   </div>
 
-  <div class="option-card">
+  <!-- خيار التأثير الزجاجي -->
+  <div class="optional-box">
     <label class="checkbox-label">
       <input type="checkbox" id="enableGlass">
-      تأثير زجاجي ضبابي (Glassmorphism)
+      تفعيل التأثير الزجاجي (Glassmorphism) — اختياري
     </label>
   </div>
 
-  <div class="option-card">
+  <!-- خيار شعار المنتصف -->
+  <div class="optional-box">
     <label class="checkbox-label">
       <input type="checkbox" id="showLogoBadge" checked>
       إظهار شعار المنتصف (6m4.me)
@@ -316,11 +337,11 @@
   </div>
 </div>
 
-<!-- نافذة إدخال رمز الحذف أو الشراء -->
+<!-- نافذة إدخال الرمز للشراء أو الحذف -->
 <div class="modal-overlay" id="unlockModal">
   <div class="modal-content">
     <h3>إزالة شعار المنتصف</h3>
-    <p>لإخفاء شعار 6m4.me، يرجى إدخال رمز التفعيل الخاص بك:</p>
+    <p>لإخفاء شعار 6m4.me، أدخل رمز التفعيل الخاص بك:</p>
     <input type="password" id="passcodeInput" class="modal-input" placeholder="اكتب الرمز">
     <div class="btn-group-modal">
       <button class="btn-confirm" onclick="verifyPasscode()">تأكيد التفعيل</button>
@@ -334,7 +355,7 @@
 
 <script>
   let cachedImg = null;
-  let isUnlocked = false; // التحقق من فك قفل الشعار
+  let isUnlocked = false;
 
   document.getElementById('imageInput').addEventListener('change', function(e) {
     if (e.target.files && e.target.files[0]) {
@@ -348,13 +369,11 @@
     }
   });
 
-  // إظهار وإخفاء أدوات التدرج اللوني
   document.getElementById('enableGradient').addEventListener('change', function() {
-    document.getElementById('gradientControls').style.display = this.checked ? 'flex' : 'none';
+    document.getElementById('gradientControls').style.display = this.checked ? 'block' : 'none';
     if (cachedImg) generateCustomQR();
   });
 
-  // مراقبة الشعار وطلب الرمز عند محاولة الإلغاء
   document.getElementById('showLogoBadge').addEventListener('click', function(e) {
     if (!this.checked && !isUnlocked) {
       e.preventDefault();
@@ -381,7 +400,6 @@
     document.getElementById('unlockModal').style.display = 'none';
   }
 
-  // مستمعات التحديث الفوري
   ['contrastRange', 'dotSizeRange', 'dotShape', 'finderShape', 'gradColor1', 'gradColor2', 'enableGlass'].forEach(id => {
     document.getElementById(id).addEventListener('input', () => { if (cachedImg) generateCustomQR(); });
   });
@@ -399,7 +417,6 @@
     return Math.abs(r - mid) <= 2 && Math.abs(c - mid) <= 4;
   }
 
-  // رسم النقاط بالأشكال المختلفة
   function drawModule(ctx, shape, x, y, size) {
     const half = size / 2;
     ctx.beginPath();
@@ -419,7 +436,6 @@
     ctx.fill();
   }
 
-  // رسم زوايا التوجيه بالأشكال المخصصة
   function drawCustomFinder(ctx, startX, startY, cellSize, style, fillStyle) {
     ctx.save();
     ctx.fillStyle = fillStyle;
@@ -497,7 +513,7 @@
     canvas.height = size;
     const cellSize = size / count;
 
-    // 1. رسم الصورة
+    // 1. رسم وتوسيط الصورة
     const hRatio = size / cachedImg.width;
     const vRatio = size / cachedImg.height;
     const ratio = Math.max(hRatio, vRatio);
@@ -508,7 +524,7 @@
     ctx.fillRect(0, 0, size, size);
     ctx.drawImage(cachedImg, 0, 0, cachedImg.width, cachedImg.height, centerShiftX, centerShiftY, cachedImg.width * ratio, cachedImg.height * ratio);
 
-    // 2. تطبيق التباين والتأثير الرمادي
+    // 2. معالجة التباين
     const imgData = ctx.getImageData(0, 0, size, size);
     const d = imgData.data;
     for (let i = 0; i < d.length; i += 4) {
@@ -521,13 +537,13 @@
     }
     ctx.putImageData(imgData, 0, 0);
 
-    // تأثير Glassmorphism (طبقة غباش ناعمة)
+    // 3. تطبيق التأثير الزجاجي (عند التفعيل فقط)
     if (isGlass) {
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.22)';
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.28)';
       ctx.fillRect(0, 0, size, size);
     }
 
-    // إعداد التدرج اللوني إن وُجد
+    // 4. تطبيق التدرج اللوني (عند التفعيل فقط)
     let darkColor = '#000000';
     if (isGradient) {
       const g = ctx.createLinearGradient(0, 0, size, size);
@@ -536,7 +552,7 @@
       darkColor = g;
     }
 
-    // 3. رسم نقاط الـ QR
+    // 5. رسم نقاط البيانات
     for (let r = 0; r < count; r++) {
       for (let c = 0; c < count; c++) {
         if (!isInsideFinder(r, c, count) && !isInsideCenterLogo(r, c, count)) {
@@ -550,12 +566,12 @@
       }
     }
 
-    // 4. رسم زوايا التوجيه
+    // 6. رسم زوايا التوجيه
     drawCustomFinder(ctx, 0, 0, cellSize, finderShape, darkColor);
     drawCustomFinder(ctx, (count - 7) * cellSize, 0, cellSize, finderShape, darkColor);
     drawCustomFinder(ctx, 0, (count - 7) * cellSize, cellSize, finderShape, darkColor);
 
-    // 5. دمج شعار 6m4.me في المنتصف
+    // 7. رسم شعار المنتصف
     if (showLogo) {
       const badgeW = cellSize * 9.5;
       const badgeH = cellSize * 4.2;
@@ -563,7 +579,6 @@
       const by = (size - badgeH) / 2;
 
       ctx.save();
-      // خلفية الشعار
       ctx.shadowColor = 'rgba(0,0,0,0.3)';
       ctx.shadowBlur = 10;
       ctx.fillStyle = '#0f172a';
@@ -571,12 +586,10 @@
       ctx.roundRect(bx, by, badgeW, badgeH, 12);
       ctx.fill();
 
-      // إطار الشعار
       ctx.strokeStyle = '#38bdf8';
       ctx.lineWidth = 2.5;
       ctx.stroke();
 
-      // نص الشعار
       ctx.shadowBlur = 0;
       ctx.fillStyle = '#ffffff';
       ctx.font = `bold ${Math.floor(cellSize * 2.1)}px system-ui, sans-serif`;
@@ -593,7 +606,7 @@
   function downloadQR() {
     const canvas = document.getElementById('qrCanvas');
     const link = document.createElement('a');
-    link.download = '6m4-art-qr.png';
+    link.download = '6m4-custom-qr.png';
     link.href = canvas.toDataURL('image/png');
     link.click();
   }
@@ -601,4 +614,3 @@
 
 </body>
 </html>
- 
