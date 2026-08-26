@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>مولّد QR بالصور الفنية</title>
-  <!-- مكتبة توليد رمز QR -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
   <style>
     :root {
@@ -171,7 +170,6 @@
 <script>
   let cachedImg = null;
 
-  // قراءة الصورة عند اختيارها وتوليد الرمز تلقائياً
   document.getElementById('imageInput').addEventListener('change', function(e) {
     if (e.target.files && e.target.files[0]) {
       const reader = new FileReader();
@@ -184,7 +182,6 @@
     }
   });
 
-  // تحديث الرمز مباشرة عند تغيير إعدادات الأشرطة
   document.getElementById('contrastRange').addEventListener('input', () => {
     if (cachedImg) generateCustomQR();
   });
@@ -192,29 +189,25 @@
     if (cachedImg) generateCustomQR();
   });
 
-  // استبعاد مناطق زوايا التوجيه لتجنب تداخل نقاط الصورة
-  function isInFinderZone(r, c, count) {
-    if (r < 8 && c < 8) return true;
-    if (r < 8 && c >= count - 8) return true;
-    if (r >= count - 8 && c < 8) return true;
+  // حصر زوايا التوجيه بدقة على نطاق 7x7 فقط بدون أي حواف بيضاء خارجية
+  function isInsideFinderSquare(r, c, count) {
+    if (r < 7 && c < 7) return true;
+    if (r < 7 && c >= count - 7) return true;
+    if (r >= count - 7 && c < 7) return true;
     return false;
   }
 
-  // رسم مربع زاوية توجيه ككتلة هندسية واحدة لمنع ظهور أي فواصل أو شبكات
-  function drawCleanFinder(ctx, startX, startY, cellSize) {
-    // 1. مسح النطاق (8x8) بلون أبيض نقي
-    ctx.fillStyle = '#FFFFFF';
-    ctx.fillRect(startX - 0.5, startY - 0.5, cellSize * 8 + 1, cellSize * 8 + 1);
-
-    // 2. الإطار الخارجي الأسود (7x7)
+  // رسم مربع التوجيه (7x7) مباشرة فوق الصورة بدون مسح المحيط
+  function drawCompactFinder(ctx, startX, startY, cellSize) {
+    // 1. الإطار الخارجي الأسود (7x7)
     ctx.fillStyle = '#000000';
     ctx.fillRect(startX, startY, cellSize * 7, cellSize * 7);
 
-    // 3. الإطار الأوسط الأبيض (5x5)
+    // 2. المربع الداخلي الأبيض (5x5)
     ctx.fillStyle = '#FFFFFF';
     ctx.fillRect(startX + cellSize, startY + cellSize, cellSize * 5, cellSize * 5);
 
-    // 4. المربع الداخلي الأسود (3x3)
+    // 3. المربع الأوسط الأسود (3x3)
     ctx.fillStyle = '#000000';
     ctx.fillRect(startX + cellSize * 2, startY + cellSize * 2, cellSize * 3, cellSize * 3);
   }
@@ -230,7 +223,6 @@
     if (!text) return alert("يرجى إدخال الرابط أولاً");
     if (!cachedImg) return alert("يرجى اختيار صورة أولاً");
 
-    // 1. توليد كود الـ QR بأعلى دقة لتصحيح الأخطاء (Level H)
     const qr = qrcode(0, 'H');
     qr.addData(text);
     qr.make();
@@ -241,7 +233,7 @@
     canvas.height = size;
     const cellSize = size / count;
 
-    // 2. ضبط وتوسيط الصورة بنمط Cover
+    // 1. رسم الصورة وتوسيطها بنمط cover
     const hRatio = size / cachedImg.width;
     const vRatio = size / cachedImg.height;
     const ratio = Math.max(hRatio, vRatio);
@@ -252,7 +244,7 @@
     ctx.fillRect(0, 0, size, size);
     ctx.drawImage(cachedImg, 0, 0, cachedImg.width, cachedImg.height, centerShiftX, centerShiftY, cachedImg.width * ratio, cachedImg.height * ratio);
 
-    // 3. تحويل ألوان الصورة إلى الأبيض والأسود عالي التباين
+    // 2. تحويل ألوان الصورة لتدرج رمادي عالي التباين
     const imgData = ctx.getImageData(0, 0, size, size);
     const d = imgData.data;
     for (let i = 0; i < d.length; i += 4) {
@@ -265,10 +257,10 @@
     }
     ctx.putImageData(imgData, 0, 0);
 
-    // 4. رسم نقاط البيانات فوق الصورة
+    // 3. رسم نقاط البيانات فوق الصورة حتى حدود المربعات تماماً
     for (let r = 0; r < count; r++) {
       for (let c = 0; c < count; c++) {
-        if (!isInFinderZone(r, c, count)) {
+        if (!isInsideFinderSquare(r, c, count)) {
           const isDark = qr.isDark(r, c);
           const centerX = c * cellSize + cellSize / 2;
           const centerY = r * cellSize + cellSize / 2;
@@ -281,10 +273,10 @@
       }
     }
 
-    // 5. رسم زوايا التوجيه الصريحة بدون أي فواصل
-    drawCleanFinder(ctx, 0, 0, cellSize); // أعلى اليسار
-    drawCleanFinder(ctx, (count - 7) * cellSize, 0, cellSize); // أعلى اليمين
-    drawCleanFinder(ctx, 0, (count - 7) * cellSize, cellSize); // أسفل اليسار
+    // 4. رسم المربعات الثلاثة بدقة دون أي خلفية بيضاء زائدة
+    drawCompactFinder(ctx, 0, 0, cellSize); // أعلى اليسار
+    drawCompactFinder(ctx, (count - 7) * cellSize, 0, cellSize); // أعلى اليمين
+    drawCompactFinder(ctx, 0, (count - 7) * cellSize, cellSize); // أسفل اليسار
 
     canvas.style.display = 'block';
     downloadBtn.style.display = 'block';
