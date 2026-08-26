@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>مولّد QR بالصورة الفنية</title>
+  <title>مولّد QR بالصور الفنية</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
   <style>
     :root {
@@ -15,17 +15,18 @@
     }
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
     body { background: var(--bg); color: var(--text); display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
-    .container { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 28px; width: 100%; max-width: 460px; box-shadow: 0 10px 30px rgba(0,0,0,0.4); }
-    h1 { font-size: 1.4rem; text-align: center; margin-bottom: 20px; color: var(--text); }
-    .form-group { margin-bottom: 16px; }
+    .container { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 24px; width: 100%; max-width: 480px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+    h1 { font-size: 1.35rem; text-align: center; margin-bottom: 18px; }
+    .form-group { margin-bottom: 14px; }
     label { display: block; font-size: 0.85rem; margin-bottom: 6px; color: #94a3b8; }
-    input[type="text"], input[type="file"] { width: 100%; padding: 10px 14px; border-radius: 8px; border: 1px solid var(--border); background: #0f172a; color: white; outline: none; }
-    input[type="file"] { padding: 8px; cursor: pointer; }
-    button { width: 100%; padding: 12px; background: var(--primary); border: none; border-radius: 8px; color: white; font-weight: bold; cursor: pointer; transition: 0.2s; margin-top: 10px; }
+    input[type="text"], input[type="file"] { width: 100%; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border); background: #0f172a; color: white; outline: none; }
+    input[type="range"] { width: 100%; accent-color: var(--primary); }
+    .controls-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+    button { width: 100%; padding: 12px; background: var(--primary); border: none; border-radius: 8px; color: white; font-weight: bold; cursor: pointer; transition: 0.2s; }
     button:hover { opacity: 0.9; }
-    .preview-box { margin-top: 24px; text-align: center; display: flex; flex-direction: column; align-items: center; }
-    canvas { max-width: 100%; height: auto; border-radius: 12px; background: white; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
-    .download-btn { background: #10b981; margin-top: 12px; display: none; }
+    .preview-box { margin-top: 20px; text-align: center; display: flex; flex-direction: column; align-items: center; }
+    canvas { max-width: 100%; height: auto; border-radius: 12px; background: white; box-shadow: 0 4px 20px rgba(0,0,0,0.4); }
+    .download-btn { background: #10b981; margin-top: 14px; display: none; }
   </style>
 </head>
 <body>
@@ -35,7 +36,7 @@
 
   <div class="form-group">
     <label>الرابط أو النص:</label>
-    <input type="text" id="qrText" value="https://google.com" placeholder="أدخل الرابط هنا">
+    <input type="text" id="qrText" value="https://google.com" placeholder="أدخل الرابط">
   </div>
 
   <div class="form-group">
@@ -43,117 +44,125 @@
     <input type="file" id="imageInput" accept="image/*">
   </div>
 
+  <div class="controls-grid">
+    <div class="form-group">
+      <label>تباين الصورة (Contrast):</label>
+      <input type="range" id="contrastRange" min="1" max="2.5" step="0.1" value="1.4">
+    </div>
+    <div class="form-group">
+      <label>حجم نقاط الـ QR:</label>
+      <input type="range" id="dotSizeRange" min="0.25" max="0.45" step="0.02" value="0.34">
+    </div>
+  </div>
+
   <button onclick="generateCustomQR()">إنشاء الرمز</button>
 
   <div class="preview-box">
-    <canvas id="qrCanvas" width="400" height="400" style="display:none;"></canvas>
+    <canvas id="qrCanvas" width="600" height="600" style="display:none;"></canvas>
     <button id="downloadBtn" class="download-btn" onclick="downloadQR()">تحميل الرمز بصيغة PNG</button>
   </div>
 </div>
 
 <script>
+  let cachedImg = null;
+
+  document.getElementById('imageInput').addEventListener('change', function(e) {
+    if (e.target.files && e.target.files[0]) {
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        cachedImg = new Image();
+        cachedImg.onload = generateCustomQR;
+        cachedImg.src = evt.target.result;
+      };
+      reader.readAsDataURL(e.target.files[0]);
+    }
+  });
+
   function isFinderPattern(r, c, count) {
-    // التحقق من زوايا التوجيه الثلاث لضمان دقة المسح
-    if (r < 8 && c < 8) return true; // أعلى اليسار
-    if (r < 8 && c >= count - 8) return true; // أعلى اليمين
-    if (r >= count - 8 && c < 8) return true; // أسفل اليسار
+    if (r < 8 && c < 8) return true;
+    if (r < 8 && c >= count - 8) return true;
+    if (r >= count - 8 && c < 8) return true;
     return false;
   }
 
   function generateCustomQR() {
     const text = document.getElementById('qrText').value.trim();
-    const fileInput = document.getElementById('imageInput');
     const canvas = document.getElementById('qrCanvas');
     const ctx = canvas.getContext('2d');
     const downloadBtn = document.getElementById('downloadBtn');
+    const contrast = parseFloat(document.getElementById('contrastRange').value);
+    const dotRatio = parseFloat(document.getElementById('dotSizeRange').value);
 
-    if (!text) {
-      alert("يرجى إدخال الرابط أولاً");
-      return;
+    if (!text) return alert("يرجى إدخال الرابط أولاً");
+    if (!cachedImg) return alert("يرجى اختيار صورة أولاً");
+
+    // 1. توليد مصفوفة الـ QR بمستوى تصحيح عالي H
+    const qr = qrcode(0, 'H');
+    qr.addData(text);
+    qr.make();
+
+    const count = qr.getModuleCount();
+    const size = 600;
+    canvas.width = size;
+    canvas.height = size;
+    const cellSize = size / count;
+
+    // 2. رسم الصورة وتوسيطها بنمط cover
+    const hRatio = size / cachedImg.width;
+    const vRatio = size / cachedImg.height;
+    const ratio = Math.max(hRatio, vRatio);
+    const centerShiftX = (size - cachedImg.width * ratio) / 2;
+    const centerShiftY = (size - cachedImg.height * ratio) / 2;
+
+    ctx.fillStyle = '#FFFFFF';
+    ctx.fillRect(0, 0, size, size);
+    ctx.drawImage(cachedImg, 0, 0, cachedImg.width, cachedImg.height, centerShiftX, centerShiftY, cachedImg.width * ratio, cachedImg.height * ratio);
+
+    // 3. تحويل الصورة إلى Grayscale عالي التباين
+    const imgData = ctx.getImageData(0, 0, size, size);
+    const d = imgData.data;
+    for (let i = 0; i < d.length; i += 4) {
+      let gray = d[i] * 0.299 + d[i + 1] * 0.587 + d[i + 2] * 0.114;
+      // تطبيق التباين
+      gray = ((gray / 255 - 0.5) * contrast + 0.5) * 255;
+      gray = Math.max(0, Math.min(255, gray));
+      d[i] = gray;
+      d[i + 1] = gray;
+      d[i + 2] = gray;
     }
+    ctx.putImageData(imgData, 0, 0);
 
-    if (fileInput.files.length === 0) {
-      alert("يرجى اختيار صورة أولاً");
-      return;
-    }
+    // 4. رسم مصفوفة الـ QR (زوايا التوجيه + النقاط الدقيقة)
+    for (let r = 0; r < count; r++) {
+      for (let c = 0; c < count; c++) {
+        const isDark = qr.isDark(r, c);
+        const x = c * cellSize;
+        const y = r * cellSize;
+        const centerX = x + cellSize / 2;
+        const centerY = y + cellSize / 2;
 
-    const reader = new FileReader();
-    reader.onload = function(event) {
-      const img = new Image();
-      img.onload = function() {
-        // 1. توليد مصفوفة الـ QR بأعلى تصحيح أخطاء H
-        const qr = qrcode(0, 'H');
-        qr.addData(text);
-        qr.make();
-
-        const count = qr.getModuleCount();
-        const size = 500;
-        canvas.width = size;
-        canvas.height = size;
-        const cellSize = size / count;
-
-        // 2. معالجة الصورة في الخلفية وتحويلها إلى تدرج رمادي
-        const offCanvas = document.createElement('canvas');
-        offCanvas.width = size;
-        offCanvas.height = size;
-        const offCtx = offCanvas.getContext('2d');
-        offCtx.drawImage(img, 0, 0, size, size);
-        const imgData = offCtx.getImageData(0, 0, size, size).data;
-
-        // 3. مسح وتجهيز اللوحة الرئيسية باللون الأبيض
-        ctx.fillStyle = '#FFFFFF';
-        ctx.fillRect(0, 0, size, size);
-
-        // 4. رسم مصفوفة البكسلات المدمجة
-        for (let r = 0; r < count; r++) {
-          for (let c = 0; c < count; c++) {
-            const isDark = qr.isDark(r, c);
-            const x = c * cellSize;
-            const y = r * cellSize;
-            const centerX = x + cellSize / 2;
-            const centerY = y + cellSize / 2;
-
-            if (isFinderPattern(r, c, count)) {
-              // رسم مربعات التوجيه الأصلية بلون أسود صريح لقراءة فورية
-              ctx.fillStyle = isDark ? '#000000' : '#FFFFFF';
-              ctx.fillRect(x, y, cellSize, cellSize);
-            } else {
-              // حساب إضاءة الصورة الأصلية عند نفس الموقع
-              const pixelIndex = (Math.floor(centerY) * size + Math.floor(centerX)) * 4;
-              const brightness = (imgData[pixelIndex] * 0.299 + imgData[pixelIndex + 1] * 0.587 + imgData[pixelIndex + 2] * 0.114) / 255;
-
-              ctx.fillStyle = '#000000';
-              if (isDark) {
-                // رسم نقطة سوداء يتفاوت حجمها بناءً على سطوع الصورة (Halftone Effect)
-                const radius = (cellSize / 2) * (1.1 - (brightness * 0.55));
-                ctx.beginPath();
-                ctx.arc(centerX, centerY, Math.max(radius, cellSize * 0.28), 0, Math.PI * 2);
-                ctx.fill();
-              } else {
-                // نقاط خفيفة جداً في المناطق الداكنة بالصورة لإبراز التفاصيل
-                if (brightness < 0.35) {
-                  ctx.fillStyle = 'rgba(0, 0, 0, 0.15)';
-                  ctx.beginPath();
-                  ctx.arc(centerX, centerY, cellSize * 0.18, 0, Math.PI * 2);
-                  ctx.fill();
-                }
-              }
-            }
-          }
+        if (isFinderPattern(r, c, count)) {
+          // رسم زوايا التوجيه بوضوح تام لضمان قراءة الكاميرا
+          ctx.fillStyle = isDark ? '#000000' : '#FFFFFF';
+          ctx.fillRect(x, y, cellSize, cellSize);
+        } else {
+          // رسم نقاط بيضاء وسوداء متناسقة فوق ملامح الصورة
+          ctx.beginPath();
+          ctx.arc(centerX, centerY, cellSize * dotRatio, 0, Math.PI * 2);
+          ctx.fillStyle = isDark ? 'rgba(0, 0, 0, 0.92)' : 'rgba(255, 255, 255, 0.88)';
+          ctx.fill();
         }
+      }
+    }
 
-        canvas.style.display = 'block';
-        downloadBtn.style.display = 'block';
-      };
-      img.src = event.target.result;
-    };
-    reader.readAsDataURL(fileInput.files[0]);
+    canvas.style.display = 'block';
+    downloadBtn.style.display = 'block';
   }
 
   function downloadQR() {
     const canvas = document.getElementById('qrCanvas');
     const link = document.createElement('a');
-    link.download = 'artistic-qr.png';
+    link.download = 'art-qr.png';
     link.href = canvas.toDataURL('image/png');
     link.click();
   }
